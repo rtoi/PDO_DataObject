@@ -222,22 +222,26 @@ class PDO_DataObject_Generator_Table {
             $var = '//'.$var;
         }
         
+        $col_done = [];
         foreach($this->columns as $col) {
-            if ($col->is_name_invalid) {
+            if ($col->is_name_invalid || isset($col_done[$col->name])) {
                 continue;
             }
             $body .= $col->toPhpVar($var);
+            $col_done[$col->name] = true;
         }
          
         $body .= $this->hook->postVar($this->columns);
 
+        $col_done = [];
         foreach($this->columns as $col) {
-            if ($col->is_name_invalid) {
+            if ($col->is_name_invalid || isset($col_done[$col->name])) {
                 continue;
             }
             $body .= $col->toPhpGetter($user_code)
                   .  $col->toPhpSetter($user_code)
                   .  $col->toPhpLinkMethod($user_code);
+            $col_done[$col->name] = true;
         }
            
         // set methods
@@ -245,17 +249,18 @@ class PDO_DataObject_Generator_Table {
         //    $kk = strtoupper($k);
         //    $body .="    function getSets{$k}() { return {$v}; }\n";
         //}
-        
+        $col_done = [];        
         if (($config['embed_schema'] || $config['add_defaults'])) {
             $tdef = array();
             $kdef = array();
             $sdef = 'array(false,false,false)'; // should only be one fo thieses
             $vdef = array();
             foreach($this->columns as $col) {
-                if ($col->is_name_invalid) {
+                if ($col->is_name_invalid || isset($col_done[$col->name])) {
                     continue;
                 }
                 $tdef[] = $col->toPhpTableFunc();
+                $col_done[$col->name] = true;
                 
                 if ($col->is_sequence) {
                     $sdef = $col->toPhpSequenceFunc();
