@@ -116,7 +116,7 @@ class PDO_DataObject_Links
      * @access public
      * @return mixed object on success false on failure or '0' when not linked
      */
-    function getLink($field, $table= false, $link='')
+    function getLink($field, $table= false, $link=false)
     {
         
         static $cache = array();
