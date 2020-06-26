@@ -65,10 +65,9 @@ class PDO_DataObject_Generator_Table {
         $this->hook = $gen->hook;
         $this->table= $table;
         $this->readFromDB();
-        $this->classname = $this->toPhpClassName();
-       
-        
+        $this->classname = $this->toPhpClassName(); 
     }
+
      /**
     * Convert a table name into a class name -> override this if you want a different mapping
     *
@@ -78,6 +77,13 @@ class PDO_DataObject_Generator_Table {
     function toPhpClassName()
     {
         $class_prefix_ar  = explode(PATH_SEPARATOR, PDO_DataObject::config()['class_prefix']);
+        if (strpos($class_prefix_ar[0], '%2$s') !== false) {
+            $class_prefix_ar[0] = sprintf(
+                $class_prefix_ar[0],
+                '',
+                preg_replace('/[^A-Z0-9]/i','_',ucfirst(trim($this->gen->_database_nickname)))
+            );
+        }
         return  $class_prefix_ar[0].preg_replace('/[^A-Z0-9]/i','_',ucfirst(trim($this->table)));
     }
     
@@ -340,7 +346,7 @@ class PDO_DataObject_Generator_Table {
         
         $input = preg_replace(
             '/(\n|\r\n)class_exists\(\'[a-z0-9_]+\'\)\s*\?\s*\'\'\s*:\s*require_once\s*\'[^\']+\'\s*;(\n|\r\n)+class\s+/si',
-            "\nclass_exists('{$this->classname}') ? '' : require_once '{$config['extends_class_location']}';\n\nclass ",
+            "\nclass_exists('{$config['extends_class']}') ? '' : require_once '{$config['extends_class_location']}';\n\nclass ",
             $input);
         
         

@@ -148,6 +148,7 @@ class PDO_DataObject
                 //    to use multiple prefixes seperate them with PATH_SEPERATOR
                 //    for 'loading' it will try them all in sequence.. - first found wins.
                 //    for the generator it will only use the first..
+                //    It is possible to use $2$s to indicate database nickname, e.g. 'Prefix_$2$s'
 
             'class_location' => '',
                 // directory where the Table classes are..

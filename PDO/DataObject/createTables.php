@@ -1,4 +1,4 @@
-#!/usr/bin/php -q
+#!/usr/bin/env -S php -q
 <?php
 /**
  * Generation tools for PDO_DataObject
@@ -45,6 +45,7 @@ if (!@$_SERVER['argv'][1]) {
 }
 
 $config = parse_ini_file($_SERVER['argv'][1], true);
+
 foreach($config as $class=>$values) {
     switch($class) {
         case 'PDO_DataObject':
@@ -57,8 +58,8 @@ foreach($config as $class=>$values) {
                 
         default:
             // skip... just ingore stuff..
+    }
 }
-
 
 
 set_time_limit(0);

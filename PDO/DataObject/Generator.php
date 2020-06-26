@@ -672,7 +672,8 @@ class PDO_DataObject_Generator extends PDO_DataObject
         foreach($this->tables as $table) {
             
             
-            $cn = $table->toPhpClassName();
+            // classname is already available
+            $cn = $table->classname;
             $fn = $table->toPhpFileName();
             
             $oldcontents = '';
