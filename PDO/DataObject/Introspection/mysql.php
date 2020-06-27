@@ -87,10 +87,11 @@ class PDO_DataObject_Introspection_mysql extends PDO_DataObject_Introspection
         // this query takes about 1.5 seconds to do all tables in the database, or 0.5 for single ones.
         // so it's quicker to query, all and cache the results..
         
-        if (empty($cache[__CLASS__.'::'. __FUNCTION__])) {
+        // We have to check that the cache has right database in it.
+        if (empty($cache[__CLASS__.'::'. __FUNCTION__.'-'.$this->do->_database_nickname])) {
              // FK first...
              
-            $cache[__CLASS__.'::'. __FUNCTION__] =  $this->do
+            $cache[__CLASS__.'::'. __FUNCTION__.'-'.$this->do->_database_nickname] =  $this->do
                 ->query("
                         
                         SELECT
@@ -130,7 +131,7 @@ class PDO_DataObject_Introspection_mysql extends PDO_DataObject_Introspection
         //var_Dump(count($cache[__CLASS__.'::'. __FUNCTION__]));
         
         $records = array();
-        foreach($cache[__CLASS__.'::'. __FUNCTION__] as $ar) {
+        foreach($cache[__CLASS__.'::'. __FUNCTION__.'-'.$this->do->_database_nickname] as $ar) {
             if ($ar['tablename'] != $string) {
                 continue;
             }
