@@ -4088,7 +4088,12 @@ class PDO_DataObject
 
         // does this need multi db support??
         $cp =  explode(PATH_SEPARATOR, self::$config['class_prefix']);
-
+        if (strpos($cp[0], '%2$s') !== false) {
+            $cp[0] = sprintf($cp[0],
+                '',
+                preg_replace('/[^A-Z0-9]/i','_',ucfirst(trim($database)))
+            );
+        }
         //print_r($cp);
 
         // multiprefix support.
