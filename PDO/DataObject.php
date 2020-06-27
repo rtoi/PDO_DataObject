@@ -4006,7 +4006,7 @@ class PDO_DataObject
 
             if (!empty($database)) {
                 self::debug("Setting database to $database",__FUNCTION__,1);
-                $ret->database($database);
+                $ret->databaseNickname($database);
             }
             return $ret;
         }
@@ -4048,7 +4048,7 @@ class PDO_DataObject
 
         if (!empty($database)) {
             self::debug("Setting database to $database",__FUNCTION__,1);
-            $ret->database($database);
+            $ret->databaseNickname($database);
         }
         self::$factory_cache[$table] = $rclass;
         return $ret;
