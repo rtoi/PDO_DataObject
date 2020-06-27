@@ -4013,7 +4013,7 @@ class PDO_DataObject
 
         // multi-database support.. - experimental.
 
-        $rclass = self::tableToClass($table);
+        $rclass = self::tableToClass($in_table);
         // proxy = full|light
         if (!$rclass && self::$config['proxy']) {
 
@@ -4072,7 +4072,7 @@ class PDO_DataObject
         $database = '';
 
         if (strpos( $table,'/') !== false ) {
-            list($database,$table) = explode('.',$table, 2);
+            list($database,$table) = explode('/',$table, 2);
 
         }
 
@@ -4124,11 +4124,12 @@ class PDO_DataObject
      * @throws PDO_DataObject_Exception only when class is loaded, and file does not exist.
      * @static
      */
-    private static function loadClass($class, $table = false)
+    private static function loadClass($class, $table = false, $database = false)
     {
 
         $class_prefix = self::$config['class_prefix'];
-
+	// This will cause problems if $table argument is not set and
+	// $class_prefix contains '$2$s' to be replaced by the database name.
         $table   = $table ? $table : substr($class,strlen($class_prefix));
 
         // only include the file if it exists - and barf badly if it has parse errors :)
@@ -4150,10 +4151,13 @@ class PDO_DataObject
                 continue;
             }
             if(strpos($cl ,'%2$s') !== false || strpos($cl ,'%1$s')) {
+                if (!$database) {
                 // have to work out the database...
                 $fake =  new PDO_DataObject($table);
                 $fake->PDO();
-                $file[] = sprintf($cl , preg_replace('/[^A-Z0-9]/i','_',ucfirst($table)), ucfirst($fake->_database_nickname) );
+                    $database = $fake->_database_nickname;
+                }
+                $file[] = sprintf($cl , preg_replace('/[^A-Z0-9]/i','_',ucfirst($table)), ucfirst($database) );
                 continue;
             }
             if (substr($cl,-1) == '/') {
