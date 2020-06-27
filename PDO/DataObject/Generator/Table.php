@@ -112,15 +112,25 @@ class PDO_DataObject_Generator_Table {
         }
         $base = $base_ar[0];
         if (strpos($base,'%s') !== false) {
-            $fn   = sprintf($base, 
+            return sprintf($base, 
                     preg_replace('/[^A-Z0-9]/i','_',ucfirst($this->table)));
-        } else { 
-            $fn = "{$base}/".preg_replace('/[^A-Z0-9]/i','_',ucfirst($this->table)).".php";
+        } 
+        // Modified from loadClass function in DataObject.php
+        if(strpos($base ,'%2$s') !== false || strpos($base ,'%1$s')) {
+            return sprintf(
+                $base, 
+                preg_replace('/[^A-Z0-9]/i', '_', ucfirst($this->table)), 
+                ucfirst($this->gen->_database_nickname)
+            );
+        }
+        if (substr($base,-1) == '/') {
+            return $base .'/'.preg_replace('/[^A-Z0-9]/i','_',ucfirst($this->table)).".php";
+        }
+        if (file_exists($base) && is_dir($base)) {
+            return $base .'/'.preg_replace('/[^A-Z0-9]/i','_',ucfirst($this->table)).".php";
         }
         
-        
-        return $fn;
-        
+        return "{$base}/".preg_replace('/[^A-Z0-9]/i','_',ucfirst($this->table)).".php";
     }
     
     
