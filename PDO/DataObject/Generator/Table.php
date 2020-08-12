@@ -358,9 +358,14 @@ class PDO_DataObject_Generator_Table {
             '/(\n|\r\n)class_exists\(\'[a-z0-9_]+\'\)\s*\?\s*\'\'\s*:\s*require_once\s*\'[^\']+\'\s*;(\n|\r\n)+class\s+/si',
             "\nclass_exists('{$config['extends_class']}') ? '' : require_once '{$config['extends_class_location']}';\n\nclass ",
             $input);
-        
-        
-        
+        // The original code may have format include_once 'xxx/yyy.php'.
+        // Convert it to the new format.
+        if ($config['extends_class_location_old']) {
+            $input = preg_replace(
+                '![\n\r]+require_once\s*\'' . $config['extends_class_location_old'] . '\'\s*;(\n|\r\n)+!i',
+                "\nclass_exists('{$config['extends_class']}') ? '' : require_once '{$config['extends_class_location']}';\n\n",
+                $input);
+        }
         
         $ret =  preg_replace(
             '/(\n|\r\n)\s*###START_AUTOCODE(\n|\r\n).*(\n|\r\n)\s*###END_AUTOCODE(\n|\r\n)/s',

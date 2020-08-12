@@ -1312,7 +1312,7 @@ class PDO_DataObject
      * @access  public
      * @return  boolean true on success, false on falure (usually no more data..)
      */
-    final function fetch()
+    function fetch()
     {
 
 
@@ -5580,7 +5580,6 @@ class PDO_DataObject
 
     function toArray($format = '%s', $hideEmpty = false)
     {
-
         // we use false to ignore sprintf.. (speed up..)
         $format = $format == '%s' ? false : $format;
 
@@ -5604,6 +5603,9 @@ class PDO_DataObject
             }
             // call the overloaded getXXXX() method. - except getLink and getLinks
             if (method_exists($this,'get'.$k)) {
+                if (self::$debug) {
+                    $this->debug("Found overloaded 'get$k' method",__FUNCTION__);
+                }
                 $ret[$format === false ? $k : sprintf($format,$k)] = $this->{'get'.$k}();
                 continue;
             }
@@ -5625,7 +5627,6 @@ class PDO_DataObject
             $ret[$format === false ? $k : sprintf($format,$k)] = $this->$k->toArray();
 
         }
-
         return $ret;
     }
 

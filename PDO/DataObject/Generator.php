@@ -145,7 +145,11 @@ class PDO_DataObject_Generator extends PDO_DataObject
                 // regex to match table names = if set, then only table names matching will be generated
             'exclude_regex' => false,
                 // regex to match table names = if set, then matching tables will not be generated
-                
+            'extends_class_location_old' => ''
+                // This is used when converting old DB/DataObject based classes to PDO/DataObject format.
+                // If this is set (normally to 'DB/DataObject.php') the generator will search for
+                // 'require_once 'DB/DataObject.php' string in the header of the old class file and convert it to:
+                // class_exists('{$config['extends_class']}') ? '' : require_once '{$config['extends_class_location']}'
     );
       /**
      * Set/get the generator configuration...
