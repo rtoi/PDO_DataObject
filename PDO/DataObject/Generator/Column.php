@@ -549,7 +549,7 @@ class PDO_DataObject_Generator_Column
     {
         
         return 'array('.
-            var_export(true,true) .','.
+            var_export($this->name,true) .','.
             var_export($this->is_sequence_native,true) .','.
             var_export($this->sequence_name, true) . ')';
     }
