@@ -224,10 +224,7 @@ class PDO_DataObject_Generator_Table {
         
         $body .= "    {$config['var_keyword']} \$__table = '{$this->table}';  {$p}// table name\n";
     
-       
-
-        // Only include the $_database property if the omit_database_var is unset or false
-        
+             
         if ($config['add_database_nickname']) {
             $p = str_repeat(' ',   max(2, (16 - strlen($this->gen->_database_nickname))));
             $body .= "    {$config['var_keyword']} \$_database_nickname = '{$this->gen->_database_nickname}';  {$p}// database name (used with databases[{*}] config)\n";
@@ -354,16 +351,26 @@ class PDO_DataObject_Generator_Table {
         
         
         
+        // The lazy load sentance 
+        // || class_exists('xxx') ? '' : require_once 'xxx.php';
+        // in the header will be converted only if
+        // $config['extends_class_location'] is not blank.
+        // Otherwise, it will be deleted.
         $input = preg_replace(
             '/(\n|\r\n)class_exists\(\'[a-z0-9_]+\'\)\s*\?\s*\'\'\s*:\s*require_once\s*\'[^\']+\'\s*;(\n|\r\n)+class\s+/si',
-            "\nclass_exists('{$config['extends_class']}') ? '' : require_once '{$config['extends_class_location']}';\n\nclass ",
+            empty($config['extends_class_location']) ? ";\n\nclass" : "\nclass_exists('{$config['extends_class']}') ? '' : require_once '{$config['extends_class_location']}';\n\nclass ",
             $input);
-        // The original code may have format include_once 'xxx/yyy.php'.
+        
+        // The original code may have format require_once 'xxx/yyy.php'.
         // Convert it to the new format.
-        if ($config['extends_class_location_old']) {
+        // If $config['extends_class_location'] is empty, old code will just be deleted. 
+        // $config['extends_class_location_old'] may have muliple files sapareted by colons.
+        if (!empty($config['extends_class_location_old'])) {
             $input = preg_replace(
-                '![\n\r]+require_once\s*\'' . $config['extends_class_location_old'] . '\'\s*;(\n|\r\n)+!i',
-                "\nclass_exists('{$config['extends_class']}') ? '' : require_once '{$config['extends_class_location']}';\n\n",
+                '![\n\r]+require_once\s*\'(' . 
+                    preg_replace('/\\\:/', '|', preg_quote($config['extends_class_location_old'])) . 
+                    ')\'\s*;(\n|\r\n)+!i',
+                empty($config['extends_class_location']) ? "\n\n" : "\nclass_exists('{$config['extends_class']}') ? '' : require_once '{$config['extends_class_location']}';\n\n",
                 $input);
         }
         
@@ -484,7 +491,6 @@ class PDO_DataObject_Generator_Table {
         }
         sort($ret);
         return "[{$this->table}]\n" . implode("\n", $ret)."\n\n";
-    }
-    
+    } 
     
 }

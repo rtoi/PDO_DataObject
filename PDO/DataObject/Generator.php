@@ -106,6 +106,9 @@ class PDO_DataObject_Generator extends PDO_DataObject
                 // what class do the generated classes extend?
             'extends_class_location' => 'PDO/DataObject.php',
                 // what file is the extended class in.                
+                // Set this to blank to omit the  
+                // "class_exists('..') ? '' : require_once ...;" phrase from the 
+                // class header and to utilise autoloader.
         
             'generate_links' => false,
                 // generate .link.ini files based on introspecting the database.
@@ -150,6 +153,10 @@ class PDO_DataObject_Generator extends PDO_DataObject
                 // If this is set (normally to 'DB/DataObject.php') the generator will search for
                 // 'require_once 'DB/DataObject.php' string in the header of the old class file and convert it to:
                 // class_exists('{$config['extends_class']}') ? '' : require_once '{$config['extends_class_location']}'
+                // If extends_class_location is blank, there will be no conversion, and the old 'require_once ...' 
+                // sentance will be deleted.
+                // This can contain multiple filenames separated by colons 
+                // e.g. DB/DataObject.php:DB/DataObjectMyExtendedBase.php
     );
       /**
      * Set/get the generator configuration...
