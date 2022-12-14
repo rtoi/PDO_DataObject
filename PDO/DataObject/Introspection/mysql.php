@@ -90,7 +90,9 @@ class PDO_DataObject_Introspection_mysql extends PDO_DataObject_Introspection
         // We have to check that the cache has right database in it.
         if (empty($cache[__CLASS__.'::'. __FUNCTION__.'-'.$this->do->_database_nickname])) {
              // FK first...
-             
+            
+            $cacheblock = class_exists('PDO_DummyStatement') ?' 12 as _prevent_cache' : ( time(). " as _prevent_cache");
+            
             $cache[__CLASS__.'::'. __FUNCTION__.'-'.$this->do->_database_nickname] =  $this->do
                 ->query("
                         
@@ -110,7 +112,7 @@ class PDO_DataObject_Introspection_mysql extends PDO_DataObject_Introspection
                             )    as flags,
                             COALESCE(REFERENCED_TABLE_NAME,'') as fk_table,
                             COALESCE(REFERENCED_COLUMN_NAME,'') as fk_column,
-                            ". time(). " as _prevent_cache
+                            $cacheblock
                             
                         FROM
                             INFORMATION_SCHEMA.COLUMNS
