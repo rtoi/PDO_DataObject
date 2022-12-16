@@ -4031,8 +4031,6 @@ class PDO_DataObject
      * @throws PDO_DataObject_Exception for many reasons...
      * @return PDO_DataObject An instance of the extended class wrapping the same table
      */
-
-
     final function factorySelf()
     {
         return self::factory($this->tableName());
@@ -4057,9 +4055,6 @@ class PDO_DataObject
      * @throws PDO_DataObject_Exception for many reasons...
      * @return PDO_DataObject An instance of the extended class wrapping the table
      */
-
-
-
     static function factory($in_table = '')
     {
 
@@ -4078,7 +4073,6 @@ class PDO_DataObject
                 $in_table = (strlen($database) ? "$database/" : '') . $table;
             }
         }
-
 
         if (isset(self::$factory_cache[$in_table])) {
             $rclass = self::$factory_cache[$in_table];
@@ -4154,6 +4148,8 @@ class PDO_DataObject
         if (strpos( $table,'/') !== false ) {
             list($database,$table) = explode('/',$table, 2);
 
+        } elseif (isset(self::$config['tables'][$table])) {
+            $database = self::$config['tables'][$table];
         }
 
         // no configuration available for database
@@ -4165,7 +4161,6 @@ class PDO_DataObject
         }
 
 
-
         // does this need multi db support??
         $cp =  explode(PATH_SEPARATOR, self::$config['class_prefix']);
         if (strpos($cp[0], '%2$s') !== false) {
@@ -4174,11 +4169,9 @@ class PDO_DataObject
                 preg_replace('/[^A-Z0-9]/i','_',ucfirst(trim($database)))
             );
         }
-        //print_r($cp);
-
+       
         // multiprefix support.
         $tbl = preg_replace('/[^A-Z0-9]/i','_',ucfirst($table));
-
         $class = array();
         foreach($cp as $cpr) {
             $ce =  class_exists($cpr . $tbl,false); //class exists without autoloader..
