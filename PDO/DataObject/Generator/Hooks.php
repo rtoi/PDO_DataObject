@@ -7,7 +7,7 @@
  *
  *  NOTE - NONE OF THIS IS TESTED..... - please report issues if you use it..
  * 
- * Copyright (c) 2016 Alan Knowles
+ * Copyright (c) 2023 Alan Knowles
  * 
  * This program is free software: you can redistribute it and/or modify  
  * it under the terms of the GNU Lesser General Public License as   
@@ -29,9 +29,11 @@
  * @version    1.0
  * @link       https://github.com/roojs/PDO_DataObject
  */
- 
+
+#[AllowDynamicProperties]
 class PDO_DataObject_Generator_Hooks {
    
+    var $gen;
    
     function __construct($gen)
     {

@@ -6,7 +6,7 @@
  * For PHP versions  5 and 7
  * 
  * 
- * Copyright (c) 2016 Alan Knowles
+ * Copyright (c) 2023 Alan Knowles
  * 
  * This program is free software: you can redistribute it and/or modify  
  * it under the terms of the GNU Lesser General Public License as   
@@ -99,6 +99,11 @@ class PDO_DataObject_Generator_Column
      */
     var $is_sequence_native = false;
 
+    /**
+     * @var PDO_DataObject_Generator_Hook - or a extended version.. - implement your own
+     */
+    
+    var $hook;
     /**
      * 
      * @param PDO_DataObject_Generator_Table $table - table that this column belongs to..
@@ -209,6 +214,8 @@ class PDO_DataObject_Generator_Column
             case 'INTEGER[]':   // postgres type
             case 'BOOLEAN[]':   // postgres type
             
+            
+            
             case 'TIMESTAMP WITH TIME ZONE': // pgsql -- might need another 'type' to handle this correctly..
             
                 $type = PDO_DataObject::STR;
@@ -220,6 +227,8 @@ class PDO_DataObject_Generator_Column
             case '_TEXT':   //postgres (?? view ??)
             case 'TEXT[]':   // postgres type
                 
+            case 'BINARY':  // not really - but not got any better ides.
+            case 'VARBINARY': 
                 $type = PDO_DataObject::STR + PDO_DataObject::TXT;
                 break;
             

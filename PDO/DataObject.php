@@ -5,7 +5,7 @@
  * For PHP versions  5 and 7
  *
  *
- * Copyright (c) 2016 Alan Knowles
+ * Copyright (c) 2023 Alan Knowles
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -29,7 +29,7 @@
  */
 
  
- 
+#[AllowDynamicProperties]
 class PDO_DataObject 
 {
    /**
@@ -234,7 +234,9 @@ class PDO_DataObject
      * note - we overload PDO with some values
      *   $pdo->database (as there is no support for it..!)
      */
-    private static $connections = array(); // md5 map of connections to DSN
+    private static $connections = array(); // md5 map of connections PDO objects 
+
+    private static $dsn = false; // map PDO objects to dsn data
 
 
     // use databaseStructure to set these...
@@ -258,8 +260,10 @@ class PDO_DataObject
      */
     public static  $set_errors = false;
 
+    public static  $result_fields = false;
 
-
+    // used for timeing results - used to be appended to statement - but that is too compilcated now
+    private $_time_query_end = 0;
     /* ---------------- ---------------- non-static  -------------------------------- */
 
     /**
@@ -273,7 +277,7 @@ class PDO_DataObject
      * The Database nick-name (usually matches the real database name, but may not..)
      * created in __connection
      * Note - this used to be called _database - however it's not guarenteed to be the real database name,
-     * for that use PDO()->dsn[database_name]
+     * for that use $dataobject->dsn()[database_name]
      *
      * @access  private (ish) - extended classes can overide this
      * @var  string
@@ -364,6 +368,9 @@ class PDO_DataObject
      */
     public $_link_loaded = false;
 
+    
+    
+    
     /**
      * Constructor
      * This is not normally used. it's better to use factory to load extended dataObjects.
@@ -453,7 +460,7 @@ class PDO_DataObject
             }
 
             if (empty($this->_database_nickname)) {
-                $this->_database = $con->dsn['nickname'];
+                $this->_database = $this->dsn($con)['nickname'];
 
                 // note
                 // sqlite -- database == basename of database...
@@ -525,7 +532,7 @@ class PDO_DataObject
 
 
             if (!$this->_database_nickname) {
-                $this->_database_nickname = self::$connections[$md5]->dsn['nickname'];
+                $this->_database_nickname = $this->dsn(self::$connections[$md5])['nickname'];
 
             }
             return self::$connections[$md5];
@@ -633,8 +640,8 @@ class PDO_DataObject
                     $dsn_ar['database_name']  : $this->_database_nickname;
 
 
-
-        self::$connections[$md5]->dsn = $dsn_ar;
+        
+        $this->dsn(self::$connections[$md5], $dsn_ar);
 
         if (empty($this->_database_nickname)) {
             $this->_database_nickname =  $dsn_ar['nickname'] ;
@@ -1361,30 +1368,33 @@ class PDO_DataObject
                 $t= explode(' ',microtime());
 
                 $this->debug("Last Data Fetch'ed after " .
-                        number_format($t[0]+$t[1]- $this->_result->time_query_end ,3) .
+                        number_format($t[0]+$t[1]- $this->_time_query_end ,3) .
                         " seconds",
                    __FUNCTION__, 2);
             }
+            $fields = $this->result_fields($this->_result);
             //may not be available in sqlite when zero rows returned.. we only find out after a fetch..
-            $fields = isset($this->_result->fields) ? $this->_result->fields : array();
             $this->_result->closeCursor();
             $this->_result = new StdClass;
-            $this->_result->fields  = $fields;
+            $this->result_fields($this->_result, $fields);
+            
             return false; // no more data... -- and this fetch did not return any...
 
         }
         static $replace = array('.', ' ');
+        
+        $fields = $this->result_fields($this->_result);
 
-        if (!isset($this->_result->fields)) {
+        if (empty($fields)) {
 
 
-            $this->_result->fields = array();
+            $fields = array();
             foreach($array as $k=>$v) {
                 $kk =  (strpos($k, '.') === false && strpos($k, ' ') === false) ?
                     $k : str_replace($replace, '_', $k);
-                $this->_result->fields[$kk] = 0; // unknown type...
+                $fields[$kk] = 0; // unknown type...
             }
-
+         
 
             for ($i = 0; $i < $this->_result->columnCount();$i++) {
 
@@ -1421,8 +1431,9 @@ class PDO_DataObject
                         throw new Exception("Unknown type {$meta['native_type']} ");
 
                 }
-                $this->_result->fields[$kk] = 0; // unknown type...
+                $fields[$kk] = 0; // unknown type...
             }
+            $this->result_fields($this->_result, $fields);
         }
 
 
@@ -1456,6 +1467,62 @@ class PDO_DataObject
         
         return true;
     }
+    
+    
+    /**
+     * can't store extra data on built in objects - annoying...
+     * so we have to use weakmap on PHP8
+     * @param $result PDOResult
+     * @param $fields (optional) - use to set the value.
+     * @return array() or empty array of fields.
+     */
+        
+    function result_fields($result)
+    {
+        if ($result === false || !is_object($result)) {
+            return array();
+        }
+        if (!class_exists('WeakMap')) {
+            if (func_num_args() == 2) {
+                $result->fields = func_get_arg(1);
+            }
+            return isset($result->fields) ? $result->fields : array();
+        }
+        if (self::$result_fields === false) { 
+            self::$result_fields = new WeakMap();
+        }
+        if (func_num_args() == 2) {
+            self::$result_fields[$result] = func_get_arg(1);
+        }
+        return isset(self::$result_fields[$result]) ? self::$result_fields[$result] : array();
+    }
+    
+    
+    /**
+     * can't store extra data on built in objects - annoying...
+     * so we have to use weakmap on PHP8
+     * @param $pdo PDO conneciton object
+     * @param $dsn (optional) - use to set the value.
+     * @return array() the dsn for the PDO Object or empty array of fields.
+     */
+        
+    static function dsn($pdo) {
+         
+        if (!class_exists('WeakMap')) {
+            if (func_num_args() == 2) {
+                $pdo->dsn = func_get_arg(1);
+            }
+            return isset($pdo->dsn) ? $pdo->dsn : array();
+        }
+        if (self::$dsn === false) { 
+            self::$dsn = new WeakMap();
+        }
+        if (func_num_args() == 2) {
+            self::$dsn[$pdo] = func_get_arg(1);
+        }
+        return isset(self::$dsn[$pdo]) ? self::$dsn[$pdo] : array();
+    }
+    
     
     const FETCH_OBJECT = -1;
     const FETCH_FAST = -2;
@@ -2213,8 +2280,8 @@ class PDO_DataObject
      * your database manual to decide how you want to implement it.
 
      * @category build
-     * @param  string $a  limit start (or number of results), or blank to reset
-     * @param  string $b  number or results
+     * @param  string|int|null $a  limit start (or number of results), or blank to reset
+     * @param  string|int|null $b  number or results
      * @access public
      * @return self  (for chaining) - except when it's being used to 'reset' the settings, \
      *                       where it returns the 'old' values
@@ -2241,8 +2308,8 @@ class PDO_DataObject
         }
         // used to connect here?? why?
 
-        $this->_query['limit_start'] = func_num_args() < 2 ? 0       : (int)$a;
-        $this->_query['limit_count'] = func_num_args() < 2 ? (int)$a : (int)$b;
+        $this->_query['limit_start'] = func_num_args() < 2 ? 0       : max(0, (int)$a);
+        $this->_query['limit_count'] = func_num_args() < 2 ? max(0, (int)$a) : max(0, (int)$b);
         return $this;
 
     }
@@ -2481,8 +2548,8 @@ class PDO_DataObject
 
         foreach($items as $k => $v) {
 
-            // if we are using autoincrement - skip the column...
-            if ($key && ($k == $key) && $useNative) {
+            // if we are using autoincrement - skip the column if it is empty...
+            if ($key && ($k == $key) && $useNative && empty($this->$k)) {
                 continue;
 
             }
@@ -3317,7 +3384,7 @@ class PDO_DataObject
 
         if (self::$debug) {
             $t= explode(' ',microtime());
-            $result->time_query_end = $t[0]+$t[1];
+            $this->_time_query_end = $t[0]+$t[1];
             $this->debug('QUERY DONE IN  '.number_format($t[0]+$t[1]-$time,3)." seconds", __FUNCTION__,2);
             $this->debug('NO# of results: '. ($no_results === true ? 'Unknown' : $no_results ), __FUNCTION__,1);
         }
@@ -3756,7 +3823,7 @@ class PDO_DataObject
      * @param  string optional set the key
      * @param  ...   optional  set more keys
      * @access public
-     * @return array
+     * @return array  , eg. array( 'id' => N )
      */
     function keys()
     {
@@ -4840,7 +4907,7 @@ class PDO_DataObject
 
         $dbPrefix  = '';
 
-        $obj_database = $obj->PDO()->dsn['database_name'];
+        $obj_database = $obj->dsn($obj->PDO())['database_name'];
 
         if ($PDO->getAttribute(PDO::ATTR_DRIVER_NAME) == 'mysql') {
             $dbPrefix = ($quoteIdentifiers
@@ -4849,7 +4916,7 @@ class PDO_DataObject
         }
 
         // if they are the same, then dont add a prefix...
-        if ($obj_database == $PDO->dsn['database_name']) {
+        if ($obj_database == $this->dsn($PDO)['database_name']) {
            $dbPrefix = '';
         }
         // as far as we know only mysql supports database prefixes..
@@ -5657,12 +5724,12 @@ class PDO_DataObject
         $format = $format == '%s' ? false : $format;
 
         $ret = array();
-        $rf = isset($this->_result->fields) ? $this->_result->fields: false;
+        $rf = $this->result_fields($this->_result);
 
         // table knows better...??? -- table() will use result->fields anyway...
         // need to look at this... --
 
-        $ar = ($rf !== false) ?
+        $ar = !empty($rf) ?
             (($hideEmpty === 0) ? $rf : array_merge($rf, $this->tableColumns())) :
             $this->tableColumns();
 
@@ -6079,4 +6146,14 @@ class PDO_DataObject
 
     }
 
+    /**
+     * To enable serialization of a PDO object we must only store public
+     * properties, excluding PDOStatements.
+     *
+     * @return array
+     */
+    public function __sleep()
+    {
+        return array_keys(get_object_vars($this));
+    }
 }

@@ -6,7 +6,7 @@
  * For PHP versions  5 and 7
  * 
  * 
- * Copyright (c) 2016 Alan Knowles
+ * Copyright (c) 2023 Alan Knowles
  * 
  * This program is free software: you can redistribute it and/or modify  
  * it under the terms of the GNU Lesser General Public License as   
@@ -36,7 +36,7 @@ class PDO_DataObject_Generator_Table {
      */
     var $gen; // generator.
     /**
-     * @var PDO_DataObject_Generator_Hook - or a extended version.. - implement your own
+     * @var PDO_DataObject_Generator_Hooks - or a extended version.. - implement your own
      */
     var $hook;
     /**
@@ -166,8 +166,9 @@ class PDO_DataObject_Generator_Table {
         
         $defs = $this->gen->introspection()->tableInfo($this->table);
          
+        $dsn = PDO_DataObject::dsn($pdo);
         
-        $this->gen->debug("getting def for {$pdo->dsn['database_name']}/{$this->table}", __FUNCTION__,3);
+        $this->gen->debug("getting def for {$dsn['database_name']}/{$this->table}", __FUNCTION__,3);
         $this->gen->debug(print_r($defs,true),'defs',3);
         
         // cast all definitions to objects - as we deal with that better.
