@@ -346,10 +346,10 @@ class PDO_DataObject_Generator_Table {
         /* this used to be configurable - */
 
         $input = preg_replace(
-            '/(\n|\r\n)class\s*[a-z0-9_]+\s*extends\s*[a-z0-9_]+\s*(\n|\r\n)\{(\n|\r\n)/si',
+            '/(\n|\r\n)class\s+[a-z0-9_]+\s*extends\s*[a-z0-9_]+\s*(\n|\r\n)\{(\n|\r\n)/si',
             "\nclass {$this->classname} extends {$config['extends_class']}\n{\n",
             $original);
-        
+
         
         
         // The lazy load sentance 
@@ -359,7 +359,7 @@ class PDO_DataObject_Generator_Table {
         // Otherwise, it will be deleted.
         $input = preg_replace(
             '/(\n|\r\n)class_exists\(\'[a-z0-9_]+\'\)\s*\?\s*\'\'\s*:\s*require_once\s*\'[^\']+\'\s*;(\n|\r\n)+class\s+/si',
-            empty($config['extends_class_location']) ? ";\n\nclass" : "\nclass_exists('{$config['extends_class']}') ? '' : require_once '{$config['extends_class_location']}';\n\nclass ",
+            empty($config['extends_class_location']) ? "\n\nclass " : "\nclass_exists('{$config['extends_class']}') ? '' : require_once '{$config['extends_class_location']}';\n\nclass ",
             $input);
         
         // The original code may have format require_once 'xxx/yyy.php'.
