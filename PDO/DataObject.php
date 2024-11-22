@@ -2508,19 +2508,15 @@ class PDO_DataObject
         // one not, a copyied on (as ret-by-ref fails with overload!)
 
 
-        $PDO = $this->PDO();;
+        $PDO = $this->PDO();
 
         $items = $this->tableColumns();
 
         if (!$items) {
             return $this->raise("insert:No table definition for {$this->tableName()}",
                 self::ERROR_INVALIDCONFIG);
-            return false;
         }
 
-
-
-        $datasaved = 1;
         $leftq     = '';
         $rightq    = '';
 

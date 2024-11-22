@@ -50,12 +50,12 @@ class PDO_DataObject_Exception extends Exception
 }
 
 // child classes - so you can catch them..
-class PDO_DataObject_Exception_InvalidArgs extends   PDO_DataObject_Exception {};
-class PDO_DataObject_Exception_NoData extends   PDO_DataObject_Exception {};
-class PDO_DataObject_Exception_InvalidConfig extends   PDO_DataObject_Exception {};
-class PDO_DataObject_Exception_NoClass extends   PDO_DataObject_Exception {};
-class PDO_DataObject_Exception_Set extends   PDO_DataObject_Exception {};
-class PDO_DataObject_Exception_Connect extends   PDO_DataObject_Exception {};
-class PDO_DataObject_Exception_Query extends   PDO_DataObject_Exception {};
+class PDO_DataObject_Exception_InvalidArgs extends   PDO_DataObject_Exception {}
+class PDO_DataObject_Exception_NoData extends   PDO_DataObject_Exception {}
+class PDO_DataObject_Exception_InvalidConfig extends   PDO_DataObject_Exception {}
+class PDO_DataObject_Exception_NoClass extends   PDO_DataObject_Exception {}
+class PDO_DataObject_Exception_Set extends   PDO_DataObject_Exception {}
+class PDO_DataObject_Exception_Connect extends   PDO_DataObject_Exception {}
+class PDO_DataObject_Exception_Query extends   PDO_DataObject_Exception {}
 
 

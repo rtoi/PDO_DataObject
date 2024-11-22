@@ -30,17 +30,26 @@
  */
 
 // include path needs to be set up correctly..?
+// require_once 'PDO/DataObject/Generator.php';
+// or use composer... 
+// Make sure autoload.php is found
+require_once '../vendor/autoload.php';
 
-require_once 'PDO/DataObject/Generator.php';
 $do = new PDO_DataObject();
 
 if (!ini_get('register_argc_argv')) {
-    $do_>raise(
-        "\nERROR: You must turn register_argc_argv On in you php.ini file for this to work\neg.\n\nregister_argc_argv = On\n\n");
+    $do->raise(
+        "\nERROR: You must turn register_argc_argv On in you php.ini file for this to work\n" .
+        "eg.\n\nregister_argc_argv = On\n\n",
+        "InvalidConfig"
+    );
 }
 
 if (!@$_SERVER['argv'][1]) {
-    $do_>raise("\nERROR: createTable.php usage:\n\nC:\php\pear\PDO\DataObjects\createTable.php example.ini\n\n");
+    $do->raise(
+        "\nERROR: createTable.php usage:\n\n\PDO\DataObjects\createTable.php example.ini\n\n",
+        "InvalidArgs"
+    );
     exit;
 }
 
@@ -61,10 +70,8 @@ foreach($config as $class=>$values) {
     }
 }
 
-
 set_time_limit(0);
-
-
+echo "Generating files ...\n";
 $generator = new PDO_DataObject_Generator();
 $generator->start();
- 
+echo "Ready!\n";
