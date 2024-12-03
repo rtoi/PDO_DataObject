@@ -478,7 +478,7 @@ class PDO_DataObject
         }
 
 
-
+        $dsn = false;
         $tn = $this->tableName();
         if (!$this->_database_nickname && strlen($tn)) {
             $this->_database_nickname = isset(self::$config['tables'][$tn]) ? self::$config['tables'][$tn] : false;
@@ -4843,7 +4843,11 @@ class PDO_DataObject
                         $ar[1] = explode(',', $ar[1]);
                     }
 
-                    if ($ar[0] != $this->tableName()) {
+                    // multi-database support
+                    // FIX: This is not bullet proof. Should we check also other way round?
+                    $tname = ((strpos($ar[0], '/') !== false) && (strpos($this->tableName(), '/') === false)) ?
+                            $this->_database_nickname . '/' . $this->tableName() : $this->tableName();
+                    if ($ar[0] != $tname) {
                         continue;
                     }
 
